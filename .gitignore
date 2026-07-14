@@ -1,0 +1,27 @@
+# Dependências do Node
+node_modules/
+
+# Variáveis de Ambiente (Segurança)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs de erro
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Pastas de Build (React / React Native)
+/build
+/dist
+.expo/
+.expo-shared/
+
+# Arquivos de Sistema Operacional (Mac/Windows)
+.DS_Store
+Thumbs.db
+
+# Chaves de API do Android/iOS (se houver arquivos específicos locais)
+*.keystore
