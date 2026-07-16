@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const DEFAULT_API_URL = 'http://10.0.20.37:3000/api';
+const DEFAULT_API_URL = 'http://10.0.20.37:3000';
 
 async function resolveBaseUrl() {
   try {

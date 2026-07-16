@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useQRCodeStore } from '../store/qrcodeStore';
@@ -9,6 +9,8 @@ const isValidQRCode = (data) => {
   return typeof data === 'string' && data.trim().length > 0;
 };
 
+const SCAN_RESET_DELAY_MS = 2000;
+
 export function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
@@ -17,6 +19,7 @@ export function CameraScreen() {
   const { deviceId, addReading, token, setLoading, setError } = useQRCodeStore();
   const flashAnim = useRef(new Animated.Value(0)).current;
   const [flashColor, setFlashColor] = useState(null);
+  const scanningRef = useRef(false);
 
   if (!permission) {
     return (
@@ -38,9 +41,9 @@ export function CameraScreen() {
   }
 
   const handleBarCodeScanned = async ({ data, type }) => {
-    if (scanned || !data) return;
+    if (scanned || scanningRef.current || !data) return;
 
-    console.log('onBarCodeScanned type:', type, 'data:', data);
+    scanningRef.current = true;
     setScanned(true);
     setMessage('');
     setError(null);
@@ -50,7 +53,7 @@ export function CameraScreen() {
       setLoading(false);
       setMessageType('error');
       setMessage('QrCode Invalido/ Lido');
-      setTimeout(() => setScanned(false), 2000);
+      setTimeout(() => setScanned(false), 4000);
       return;
     }
 
@@ -58,7 +61,7 @@ export function CameraScreen() {
       setLoading(false);
       setMessageType('error');
       setMessage('Dispositivo não registrado');
-      setTimeout(() => setScanned(false), 2000);
+      setTimeout(() => setScanned(false), 4000);
       return;
     }
 
@@ -111,7 +114,10 @@ export function CameraScreen() {
       ]).start(() => setFlashColor(null));
     } finally {
       setLoading(false);
-      setTimeout(() => setScanned(false), 1200);
+      setTimeout(() => {
+        setScanned(false);
+        scanningRef.current = false;
+      }, SCAN_RESET_DELAY_MS);
     }
   };
 

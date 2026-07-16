@@ -142,13 +142,13 @@ app.post('/api/auth/refresh', authenticateToken, (req, res) => {
 app.post('/api/qr/register', authenticateToken, (req, res) => {
   const { qr_data, device_id, latitude, longitude, image_url } = req.body;
 
-  if (!qr_data || !device_id) {
-    return res.status(400).json({ error: 'qr_data and device_id required' });
+  if (!qr_data) {
+    return res.status(400).json({ error: 'qr_data required' });
   }
   // Verificar duplicata (mesmo qr_data para o mesmo device_id)
   db.get(
-    'SELECT id, timestamp FROM qr_readings WHERE qr_data = ? AND device_id = ?',
-    [qr_data, device_id],
+    'SELECT id, timestamp FROM qr_readings WHERE qr_data = ?',
+    [qr_data],
     (err, row) => {
       if (err) return res.status(500).json({ error: 'Database error', details: err.message });
       if (row) {
