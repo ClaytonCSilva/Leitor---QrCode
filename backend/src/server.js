@@ -11,7 +11,7 @@ dotenv.config({ path: './.env' });
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 const JWT_SECRET = process.env.JWT_SECRET || 'cW?|y5q@Uz6XhTZj-dIP>oqb';
-const API_URL = process.env.API_URL || `http://localhost:${PORT}`;
+const API_URL = process.env.API_URL || `https://api-qrcode-8clv.onrender.com:${PORT}`;
 
 // ============================================
 // MIDDLEWARE
@@ -42,12 +42,29 @@ db.serialize(() => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
-  // Índice único para prevenir duplicatas por dispositivo
+
+   // Tabela de Líderes
   db.run(`
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_qr_unique_per_device
-    ON qr_readings(qr_data, device_id)
+    CREATE TABLE IF NOT EXISTS liders (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      matricula TEXT UNIQUE NOT NULL,
+      foto_url TEXT
+    )
   `);
 
+  // Tabela de Colaboradores
+  db.run(`
+    CREATE TABLE IF NOT EXISTS collaborators (
+      id TEXT PRIMARY KEY,
+      lider_id TEXT NOT NULL REFERENCES liders(id),
+      name TEXT NOT NULL,
+      matricula TEXT UNIQUE NOT NULL,
+      foto_url TEXT
+    )
+  `);
+
+ 
   // Tabela de dispositivos
   db.run(`
     CREATE TABLE IF NOT EXISTS devices (
@@ -145,15 +162,6 @@ app.post('/api/qr/register', authenticateToken, (req, res) => {
   if (!qr_data) {
     return res.status(400).json({ error: 'qr_data required' });
   }
-  // Verificar duplicata (mesmo qr_data para o mesmo device_id)
-  db.get(
-    'SELECT id, timestamp FROM qr_readings WHERE qr_data = ?',
-    [qr_data],
-    (err, row) => {
-      if (err) return res.status(500).json({ error: 'Database error', details: err.message });
-      if (row) {
-        return res.status(409).json({ error: 'QR code already registered', existing: row });
-      }
 
       const id = uuidv4();
       const timestamp = Date.now();
@@ -164,10 +172,6 @@ app.post('/api/qr/register', authenticateToken, (req, res) => {
         [id, qr_data, device_id, timestamp, latitude || null, longitude || null, image_url || null],
         (insertErr) => {
           if (insertErr) {
-            // Em caso de condição de corrida, checar se é violação de UNIQUE
-            if (insertErr.message && insertErr.message.includes('UNIQUE')) {
-              return res.status(409).json({ error: 'QR code already registered' });
-            }
             return res.status(500).json({ error: 'Database error', details: insertErr.message });
           }
           res.status(201).json({
@@ -181,34 +185,6 @@ app.post('/api/qr/register', authenticateToken, (req, res) => {
       );
     }
   );
-});
-
-// 2️⃣ OBTER HISTÓRICO DE LEITURAS
-app.get('/api/qr/history', authenticateToken, (req, res) => {
-  const { device_id, limit = 50, offset = 0 } = req.query;
-
-  let query = 'SELECT * FROM qr_readings';
-  let params = [];
-
-  if (device_id) {
-    query += ' WHERE device_id = ?';
-    params.push(device_id);
-  }
-
-  query += ' ORDER BY timestamp DESC LIMIT ? OFFSET ?';
-  params.push(parseInt(limit), parseInt(offset));
-
-  db.all(query, params, (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error', details: err.message });
-    }
-    res.json({
-      success: true,
-      count: rows.length,
-      data: rows
-    });
-  });
-});
 
 // 3️⃣ OBTER UMA LEITURA ESPECÍFICA
 app.get('/api/qr/:id', authenticateToken, (req, res) => {
@@ -258,18 +234,23 @@ app.get('/api/qr/search', authenticateToken, (req, res) => {
   });
 });
 
-// 5️⃣ DELETAR UMA LEITURA
-app.delete('/api/qr/:id', authenticateToken, (req, res) => {
-  const { id } = req.params;
+// ROTA PARA VERIFICAR DE QUAL COLABORADOR É O QR CODE LIDO
+app.get('/api/qr/verify/:qr_data', authenticateToken, (req, res) => {
+  const qrData = decodeURIComponent(req.params.qr_data);
 
-  db.run('DELETE FROM qr_readings WHERE id = ?', [id], function(err) {
+  db.get('SELECT * FROM collaborators WHERE matricula = ?', [qrData], (err, row) => {
     if (err) {
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
-    if (this.changes === 0) {
-      return res.status(404).json({ error: 'QR reading not found' });
+    if (!row) {
+      return res.status(404).json({ error: 'Collaborator not found for this QR code' });
     }
-    res.json({ success: true, message: 'QR reading deleted' });
+    res.json({
+      success: true,
+      qr_data: qrData,
+      collaborator: row,
+      marker_options: ['grave', 'medio', 'curto']
+    });
   });
 });
 

@@ -1,19 +1,14 @@
 import api from './api';
 
 export const qrcodeService = {
-  async registerQRCode(qrData, deviceId, latitude, longitude, token) {
+  async verifyQRCode(qrData, token) {
     try {
-      const response = await api.post('/api/qr/register', {
-        qr_data: qrData,
-        device_id: deviceId,
-        latitude,
-        longitude,
-      }, {
+      const response = await api.get(`/api/qr/verify/${encodeURIComponent(qrData)}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.error || error.message || 'Erro ao registrar QR code');
+      throw new Error(error.response?.data?.error || error.message || 'Erro ao verificar QR code');
     }
   },
 

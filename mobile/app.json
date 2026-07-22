@@ -3,22 +3,20 @@
     "name": "QR Code Reader",
     "slug": "qrcode-reader",
     "version": "1.0.0",
+    "icon": "./assets/logo_android.png",
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTabletMode": true
+      "supportsTabletMode": true,
+      "bundleIdentifier": "com.anonymous.qrcodereader"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "../assets/logo_android.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_COARSE_LOCATION",
@@ -27,7 +25,7 @@
       "package": "com.anonymous.qrcodereader"
     },
     "web": {
-      "favicon": "./assets/logo.png"
+      "favicon": "./assets/logo_android.png"
     },
     "plugins": [
       [
@@ -41,8 +39,7 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow QR Code Reader to access your location"
         }
-      ],
-      "expo-barcode-scanner"
+      ]
     ]
   }
 }

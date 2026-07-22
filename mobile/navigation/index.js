@@ -7,7 +7,6 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { CameraScreen } from '../components/CameraScreen';
 import { DashboardScreen } from '../components/DashboardScreen';
-import { HistoryScreen } from '../components/HistoryScreen';
 import { SettingsScreen } from '../components/SettingsScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { RegisterDeviceScreen } from '../screens/RegisterDeviceScreen';
@@ -41,18 +40,6 @@ function CameraTab() {
   );
 }
 
-function HistoryTab() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="HistoryStack"
-        component={HistoryScreen}
-        options={{ title: 'Histórico' }}
-      />
-    </Stack.Navigator>
-  );
-}
-
 function SettingsTab() {
   return (
     <Stack.Navigator>
@@ -73,8 +60,6 @@ function AppTabs() {
           let iconName;
           if (route.name === 'Camera') {
             iconName = focused ? 'camera' : 'camera-outline';
-          } else if (route.name === 'History') {
-            iconName = focused ? 'list' : 'list-outline';
           } else if (route.name === 'Settings') {
             iconName = focused ? 'settings' : 'settings-outline';
           } else if (route.name === 'Dashboard') {
@@ -96,11 +81,6 @@ function AppTabs() {
         name="Camera"
         component={CameraTab}
         options={{ title: 'Câmera' }}
-      />
-      <Tab.Screen
-        name="History"
-        component={HistoryTab}
-        options={{ title: 'Histórico' }}
       />
       <Tab.Screen
         name="Settings"
